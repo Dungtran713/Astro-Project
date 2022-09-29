@@ -11,6 +11,7 @@ public class Player : MonoBehaviour
     public float jumpHeight = 1f;
     public float gravity = 7f;
     public Transform planet;
+    public float planetAttractiveness = 10f;
 
     private bool falling = true;
     private bool jumping = false;
@@ -49,17 +50,26 @@ public class Player : MonoBehaviour
 
         if (jumping) {
             if (timer > 0f) {
-                float startDist = Vector3.Distance (transform.position, planet.transform.position);
+                float startDist = Vector3.Distance (transform.position, planet.transform.position) + planetAttractiveness;
+                float leastDistance = 100000f;
+                Transform leastChild = null;
                 foreach (Transform child in planets.transform) { // Check for closer planets/objects while player is mid-jump and pull them towards closest one
-                    float distance = Vector3.Distance (transform.position, child.transform.position);
-                    if (distance < startDist && child != planet) {
-                        planet = child;
-                        jumping = false;
-                        falling = true;
-                        rotateTowards(planet);
+                    if (child != planet) {
+                        float distance = Vector3.Distance (transform.position, child.transform.position);
+                        if (distance < leastDistance) {
+                            leastDistance = distance;
+                            leastChild = child;
+                        }
                     }
                 }
-                
+      
+                if (leastDistance < startDist && leastChild != planet) {
+                    planet = leastChild;
+                    jumping = false;
+                    falling = true;
+                    rotateTowards(planet);
+                }
+
                 transform.position += transform.up * Time.deltaTime * jumpSpeed;
                 timer = timer - (Time.deltaTime);
             }
@@ -67,9 +77,22 @@ public class Player : MonoBehaviour
         
         if (falling) {
             transform.position -= transform.up * Time.deltaTime * gravity;
+            rotateTowards(planet);
         }
 
         transform.RotateAround(planet.transform.position, Vector3.forward, movement * Time.deltaTime);
+
+        if((planet.gameObject.GetComponent("Asteroid")) != null) { // Move player with moving object
+            Asteroid asteroid = planet.gameObject.GetComponent<Asteroid>();
+            if (asteroid.orbit) {
+                transform.RotateAround(new Vector2(asteroid.orbitOriginx, asteroid.orbitOriginy), Vector3.forward, asteroid.movementSpeed * Time.deltaTime);
+                transform.RotateAround(planet.transform.position, Vector3.forward, movement * Time.deltaTime);
+            } else {
+                float step = asteroid.movementSpeed * Time.deltaTime;
+                transform.position = Vector3.MoveTowards(transform.position, asteroid.toDest, step);
+                transform.RotateAround(planet.transform.position, Vector3.forward, movement * Time.deltaTime);
+            }
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
@@ -79,6 +102,8 @@ public class Player : MonoBehaviour
         } else if(jumping) { // If the player collides with another object while jumping, stop jumping and fall back
             jumping = false;
             falling = true;
+        } else {
+            rotateTowards(planet);
         }
     }
 

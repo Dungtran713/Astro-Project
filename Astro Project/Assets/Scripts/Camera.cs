@@ -12,6 +12,7 @@ public class Camera : MonoBehaviour
 
     void Update() {
         var step =  cameraSpeed * Time.deltaTime;
+        if((player.planet.gameObject.GetComponent("Asteroid")) != null) {step *= 2f;}
         var posWithoutZ = new Vector3(player.planet.position.x, player.planet.position.y, transform.position.z);
         transform.position = Vector3.MoveTowards(transform.position, posWithoutZ, step);
     }
