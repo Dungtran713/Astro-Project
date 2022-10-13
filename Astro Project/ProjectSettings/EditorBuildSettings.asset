@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: f62aad31608c94ef1871e6cb3ca71c6a
   - enabled: 1
+    path: Assets/Scenes/Intro.unity
+    guid: f0c09d7dfbde37927ac98c6c4dcdf365
+  - enabled: 1
     path: Assets/Scenes/Planets.unity
     guid: b291dae0c27c225509afed6aea738538
   m_configObjects: {}
